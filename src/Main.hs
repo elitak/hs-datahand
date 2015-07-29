@@ -12,7 +12,7 @@ main = do
     dumpRawHeader experimental
     where 
           join = (concat .) . intersperse
-          layerToRawMap EmptyLayer = []
+          layerToRawMap EmptyLayer = [0 | _ <- [1..52]] -- XXX 52=number of keys on board. this representation should be handled by typeclass instance
           layerToRawMap layer = map fromEnum . toList . toRaw $ layer
           dump = map show . layerToRawMap
           dumpRawHeader layout = putStrLn $ join "\n" $ [
