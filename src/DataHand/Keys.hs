@@ -1,5 +1,24 @@
 module DataHand.Keys where
 
+-- NB any keycodes above 0xFF are interpreted as "autoshifted", meaning that a
+-- shift code will be sent alongside the 0xFF-masked value.
+--
+-- XXX this is probably not the proper way to type Key, especially since it
+-- couples these definitions with the QWERTY-US shift-states, though not the
+-- key locations (e.g. '#' is shift+'3')
+--
+-- Possible solution: KeyAlias all values above 0xFF. This requires a way to
+-- add in the shift modifier, however, which results in a more complex type.
+-- Types like this?
+--    data KeyEvent = A | B | C
+--    data Modifier = Shift | Ctrl | Alt
+--    data CompositeKeyEvent = CompositeKeyEvent [Modifier] KeyEvent
+-- Some fancy way to compose these? There must be an elegant way...
+--    data KeyEvent = KeyEvent Key
+--                  | ShiftedKeyEvent Key
+--              instance Enum KeyEvent
+--                  fromEnum (KeyEvent a) = fromEnum a -- this seems like a familiar pattern... Applicative? Functor?
+--                  fromEnum (ShiftedKeyEvent a) = 0x100 | fromEnum a
 data Key = NoEvent
          | ErrorRollOver
          | POSTFail
@@ -204,6 +223,7 @@ data Key = NoEvent
          | Alt
          | DummyF7
          | DummyF8 | DummyF9 | DummyFA | DummyFB | DummyFC | DummyFD | DummyFE | DummyFF
+         -- The "autoshifted" keys begin here.
          | Dummy100 | Dummy101 | Dummy102 | Dummy103 | Dummy104 | Dummy105 | Dummy106 | Dummy107
          | Dummy108 | Dummy109 | Dummy10A | Dummy10B | Dummy10C | Dummy10D | Dummy10E | Dummy10F
          | Dummy110 | Dummy111 | Dummy112 | Dummy113 | Dummy114 | Dummy115 | Dummy116 | Dummy117
