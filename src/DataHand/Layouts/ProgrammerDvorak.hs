@@ -109,7 +109,7 @@ experimental = Layout {
 --      +----+           +----+           +----+           +----+
           ø                lb               lcb              lp
 -- +----+----+----+ +----+----+----+ +----+----+----+ +----+----+----+ +----+----+----+
-     ø    svn Plus    ø   Five  ø      lab  thr  rab    til  One Nine    ret caps  Tab
+     ø    svn Plus    ø   Five  ø      lab  thr  rab    til  One Nine    ret lwin  Tab
 -- +----+----+----+ +----+----+----+ +----+----+----+ +----+----+----+ +----+----+----+
          bktk             perc              ø                eq         Norm shft lctl
 --      +----+           +----+           +----+           +----+      +----+----+----+
