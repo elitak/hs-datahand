@@ -83,12 +83,11 @@ main = do
     poke port gpio{crl=0x11111111}
     c_delay 500000
 
-    mapM_ gpioOut pat
+    forever $ do
+        mapM_ gpioOut pat
+
+    --GOTCHA use everything in where clause, else get a compile error!
     where
       o13 = (1 `shiftL` 13)
-      o15 = (1 `shiftL` 15)
-      pat = [o13, o13 .|. o15, o15, 0]
-
-   -- forever $ do
-   --     gpioOut 0xff
-   --     gpioOut 0x00
+      o7 = (1 `shiftL` 7)
+      pat = [o13, o13 .|. o7, o7, 0]

@@ -1,5 +1,0 @@
-nix-shell -I nixpkgs=~/src/nixpkgs/ajhc --pure
-ajhc -i hs_src -f ffi -p applicative -p bytestring -X RecordWildCards --tdir=jhc_custom/rts/src -C -o hs_main.c hs_src/Main.hs
-pushd lib; make; popd
-pushd jhc_custom/rts; make; popd
-make mini-demo.bin
