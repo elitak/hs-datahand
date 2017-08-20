@@ -1,6 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
 module Main where
-import Foreign.Ptr
+import Jhc.Type.Ptr (Ptr(..))-- instead of Foreign.Ptr
+import Jhc.Addr (nullPtr, plusPtr)
+import Jhc.Prim.Bits (Addr_(..))
 import Foreign.Storable
 
 import Control.Monad hiding (join)
@@ -12,10 +14,20 @@ import DataHand.USB.Descriptors
 import Data.Bits
 
 foreign import ccall "c_extern.h Delay" c_delay :: Word32 -> IO ()
+-- FIXME importing anything from stm32f10x.h causes error because it has a typedef bool that interferes with the one in HsFFI.h
+foreign import ccall "stm32f10x.h RCC_DeInit" rccDeinit :: IO ()
+foreign import ccall "stm32f10x.h RCC_APB2PeriphClockCmd" rccApb2periphclockcmd :: Word32 -> Bool -> IO ()
+foreign import ccall "stm32f10x.h GPIO_Init" gpioInit :: Word32 -> Word32 -> IO () -- FIXME
 #include "stm32f10x.h"
-gPIOA_BASE = nullPtr `plusPtr` #const GPIOA_BASE
-gPIOB_BASE = nullPtr `plusPtr` #const GPIOB_BASE
-gPIOC_BASE = nullPtr `plusPtr` #const GPIOC_BASE
+rccApb2periphGpioa = #const RCC_APB2Periph_GPIOA
+rccApb2periphGpiob = #const RCC_APB2Periph_GPIOB
+rccApb2periphGpioc = #const RCC_APB2Periph_GPIOC
+-- TODO figure out type and eliminate plusPtr usage
+--gpioaBase :: Ptr a 
+--gpioaBase = Ptr ((#const GPIOA_BASE))
+gpioaBase = nullPtr `plusPtr` #const GPIOA_BASE
+gpiobBase = nullPtr `plusPtr` #const GPIOB_BASE
+gpiocBase = nullPtr `plusPtr` #const GPIOC_BASE
 -- TODO: import the struct and use names as offsets via ffi (sounds like this isnt supported)
 
 data GPIO = GPIO { crl :: Word32
@@ -46,6 +58,53 @@ instance Storable GPIO where
                            (#poke GPIO_TypeDef, BRR)   ptr brr
                            (#poke GPIO_TypeDef, LCKR)  ptr lckr
 
+data GPIO_InitTypeDef = GPIO_InitTypeDef { pin :: Word16
+                                         , speed :: GPIOSpeed_TypeDef
+                                         , mode :: GPIOMode_TypeDef
+                                         }
+instance Storable GPIO_InitTypeDef where
+        sizeOf _ = (#size GPIO_InitTypeDef)
+        alignment = sizeOf
+        peek ptr = do
+                pin   <- (#peek GPIO_InitTypeDef, GPIO_Pin)   ptr
+                speed <- (#peek GPIO_InitTypeDef, GPIO_Speed) ptr
+                mode  <- (#peek GPIO_InitTypeDef, GPIO_Mode)  ptr
+                return $ GPIO_InitTypeDef pin speed mode
+        poke ptr (GPIO_InitTypeDef pin speed mode) = do (#poke GPIO_InitTypeDef, GPIO_Pin)   ptr pin
+                                                        (#poke GPIO_InitTypeDef, GPIO_Speed) ptr speed
+                                                        (#poke GPIO_InitTypeDef, GPIO_Mode)  ptr mode
+
+newtype GPIOSpeed_TypeDef = GPIOSpeed_TypeDef #type GPIOSpeed_TypeDef
+                            --deriving (Storable)
+instance Storable GPIOSpeed_TypeDef --where
+--        sizeOf (GPIOSpeed_TypeDef a) = sizeOf a
+--        alignment (GPIOSpeed_TypeDef a) = alignment a
+--        --peek (Ptr addr) = GPIOSpeed_TypeDef (peek addr)
+--        peek ptr = do
+--                val <- peek ptr
+--                --return $ GPIOSpeed_TypeDef val
+--                return $ val
+--        --peek (Ptr (GPIOSpeed_TypeDef a)) = (peek a)
+--        --poke (Ptr (GPIOSpeed_TypeDef a)) (GPIOSpeed_TypeDef a) = (poke a)
+--        --poke ptr var = do poke ptr var
+--        --pokeByteOff = pokeByteOff
+#enum GPIOSpeed_TypeDef, GPIOSpeed_TypeDef \
+  , GPIO_Speed_10MHz \
+  , GPIO_Speed_2MHz \
+  , GPIO_Speed_50MHz
+
+newtype GPIOMode_TypeDef = GPIOMode_TypeDef Word32
+instance Storable GPIOMode_TypeDef
+#enum GPIOMode_TypeDef, GPIOMode_TypeDef \
+  , GPIO_Mode_AIN \
+  , GPIO_Mode_IN_FLOATING \
+  , GPIO_Mode_IPD \
+  , GPIO_Mode_IPU \
+  , GPIO_Mode_Out_OD \
+  , GPIO_Mode_Out_PP \
+  , GPIO_Mode_AF_OD \
+  , GPIO_Mode_AF_PP
+
 
 -- see table 20 in manual for the 4 bits that control each pin on every port
 -- (CNF1,CNF0,MODE1,MODE0) are the 4 bits, msb->lsb.
@@ -59,12 +118,12 @@ instance Storable GPIO where
 
 gpioOut :: Word32 -> IO ()
 gpioOut regval = do
-  forM_ [ gPIOA_BASE
-        , gPIOB_BASE
-        , gPIOC_BASE ] $ \port -> do
-    gpio :: GPIO <- peek port
-    poke port gpio{odr=regval}
-  c_delay 500000 --micro or milli? i dont know
+  forM_ [ gpioaBase
+        , gpiobBase
+        , gpiocBase ] $ \port -> do
+            gpio :: GPIO <- peek port
+            poke port gpio{odr=regval}
+  c_delay 0xaffff --720k microseconds? seems maybe to be based on clock?
 
 join :: String -> [String] -> String
 join = (concat .) . intersperse
@@ -75,13 +134,17 @@ main = do
     --    layerToRawMap l = map fromEnum $ (toList . toRaw) l
     --return $ layerToRawMap (normal experimental)
 
+
+    rccDeinit
+    rccApb2periphclockcmd rccApb2periphGpioc True
+    --gpioInit gPIOA
     -- configure the pins. needed? manual says they default to input...
-    forM_ [ gPIOA_BASE
-          , gPIOB_BASE
-          , gPIOC_BASE ] $ \port -> do
-    gpio :: GPIO <- peek port
-    poke port gpio{crl=0x11111111}
-    c_delay 500000
+    forM_ [ gpioaBase
+          , gpiobBase
+          , gpiocBase ] $ \port -> do
+                    gpio :: GPIO <- peek port
+                    poke port gpio{crl=0x11111111}
+    c_delay 0xaffff
 
     forever $ do
         mapM_ gpioOut pat
