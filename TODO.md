@@ -3,13 +3,18 @@
 * Fn mode doesnt stick
 * figure out actual keycodes and which is actual winkey
 * add mouse support
-add a bunch of debug features by holding debug key on back + some letter to do various things like dump keymap as txt, do a LED test, etc.
-  holding it 5s prints out help menu via keystrokes
 
 
 ### imported todos
 * rust rewrite of the datahand  Driver if I can't do the Haskell on the stm32 and see if I can just run rust on the teensy
 * datahand combined with 443MHz radio + IR transmitter, for control of light, projector
+* add a bunch of debug features by holding debug key on back + some letter to do various things like:
+   debug+F enter flash mode, so i can avoid having to press through fabric
+   debug+K: dump keymap as txt
+   debug+L do a LED test / disco mode
+   debug+R reset/reinit
+   debug+D print debug info (the actual function of the debug button), listing line states
+   debug[hold 5s] print out help as keystrokes, listing the above
 
 
 #### TODOs moved here from ProgrammerDvorak layout .hs
