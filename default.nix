@@ -10,7 +10,7 @@ let
       ext = last (splitString "." path);
       parts = last (splitString "/" path);
     in
-      !elem (basename path) ["dist"] &&
+      !elem (basename path) ["dhteensy" "dist"] &&
       !elem ext ["sh" "nix" "md" "swp"] &&
       !hasPrefix "result" (basename path) &&
       !hasPrefix ".git" (basename path);

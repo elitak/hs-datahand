@@ -1,0 +1,3 @@
+[submodule "dhteensy"]
+	path = dhteensy
+	url = https://github.com/elitak/dhteensy
