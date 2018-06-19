@@ -1,7 +1,7 @@
 name:                hs-datahand
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            DataHand layout compositor
-description:         Use this to prepare layouts for dhteensy
+description:         Generates layout header files for use in dhteensy
 homepage:            https://github.com/elitak/hs-datahand
 license:             GPL-3
 license-file:        LICENSE
@@ -15,3 +15,7 @@ executable hs-datahand
   hs-source-dirs:      src
   main-is:             Main.hs
   build-depends:       base >=4.6
+  other-modules:       DataHand.KeyAliases
+                     , DataHand.Keys
+                     , DataHand.Layout
+                     , DataHand.Layouts.ProgrammerDvorak
