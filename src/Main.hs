@@ -9,7 +9,7 @@ import DataHand.Layouts.ProgrammerDvorak
 
 main = do
 
-    dumpRawHeader experimental
+    dumpRawHeader eric
     where 
           join = (concat .) . intersperse
           layerToRawMap EmptyLayer = [0 | _ <- [1..52]] -- XXX 52=number of keys on board. this representation should be handled by typeclass instance
